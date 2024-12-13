@@ -14,6 +14,7 @@ import * as ImagePicker from "expo-image-picker";
 import { auth, database } from "./../firebaseConfig";
 import { ref, set, get } from "firebase/database";
 import supabase from "./supabaseClient";
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const uploadImageToSupabase = async (uri) => {
   const fileName = uri.split("/").pop();
@@ -167,52 +168,73 @@ const ProfileScreen = () => {
         />
       )}
 
-      <TouchableOpacity style={styles.button} onPress={pickImageFromGallery}>
+<TouchableOpacity style={styles.button} onPress={pickImageFromGallery}>
+        <Icon name="image" size={18} color="#fff" />
         <Text style={styles.buttonText}>Choose from Gallery</Text>
       </TouchableOpacity>
 
-      <TextInput
-        style={styles.input}
-        value={email}
-        onChangeText={setEmail}
-        placeholder="Email"
-        editable={false} // Email is not editable
-      />
+      <View style={styles.inputContainer}>
+        <Icon name="email" size={20} color="#a8325a" style={styles.icon} />
+        <TextInput
+          style={styles.input}
+          value={email}
+          onChangeText={setEmail}
+          placeholder="Email"
+          editable={false} // Email is not editable
+        />
+      </View>
 
-      <TextInput
-        style={styles.input}
-        value={fullname}
-        onChangeText={setFullname}
-        placeholder="Full Name"
-      />
+      <View style={styles.inputContainer}>
+        <Icon name="account" size={20} color="#a8325a" style={styles.icon} />
+        <TextInput
+          style={styles.input}
+          value={fullname}
+          onChangeText={setFullname}
+          placeholder="Full Name"
+        />
+      </View>
 
-      <TextInput
-        style={styles.input}
-        value={pseudo}
-        onChangeText={setPseudo}
-        placeholder="Pseudo"
-      />
+      <View style={styles.inputContainer}>
+        <Icon
+          name="account-edit"
+          size={20}
+          color="#a8325a"
+          style={styles.icon}
+        />
+        <TextInput
+          style={styles.input}
+          value={pseudo}
+          onChangeText={setPseudo}
+          placeholder="Pseudo"
+        />
+      </View>
 
-      <TextInput
-        style={styles.input}
-        value={phone}
-        onChangeText={setPhone}
-        placeholder="Phone"
-        keyboardType="phone-pad"
-      />
+      <View style={styles.inputContainer}>
+        <Icon name="phone" size={20} color="#a8325a" style={styles.icon} />
+        <TextInput
+          style={styles.input}
+          value={phone}
+          onChangeText={setPhone}
+          placeholder="Phone"
+          keyboardType="phone-pad"
+        />
+      </View>
 
-      <Button title="Save" onPress={handleSave} color="#3498db" />
+      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+        <Icon name="content-save" size={18} color="#fff" />
+        <Text style={styles.saveButtonText}>Save</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, 
-    padding: 16, 
-    justifyContent: "center", 
-    alignItems: "center", 
-    width: '100%', 
+    flex: 1,
+    //padding: 20,
+    width:"100%",
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: "#fff5f7", // Light background to complement the theme
   },
   title: {
@@ -227,26 +249,33 @@ const styles = StyleSheet.create({
     borderRadius: 75,
     marginBottom: 20,
     borderWidth: 3,
-    borderColor: "#a8325a", // Theme color border
-    backgroundColor: "#ffe6eb", // Subtle background for empty state
+    borderColor: "#a8325a", 
+    backgroundColor: "#ffe6eb", 
   },
   button: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "#a8325a",
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
     marginVertical: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 4,
   },
   buttonText: {
     color: "#ffffff",
     fontSize: 16,
     fontWeight: "600",
     textAlign: "center",
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 15,
+    width: "100%",
+  },
+  icon: {
+    marginHorizontal: 8,
   },
   input: {
     height: 50,
@@ -258,9 +287,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: "#fff",
     color: "#333",
-    width: "100%",
+    width: "90%",
   },
   saveButton: {
+     flexDirection: "row", alignItems: "center",
     backgroundColor: "#a8325a",
     paddingVertical: 12,
     paddingHorizontal: 20,

@@ -1,4 +1,3 @@
-//chatcontent
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -25,17 +24,15 @@ const ChatsContent = ({ setSelectedTab, setOther }) => {
   const currentUserId = auth.currentUser?.uid; // Get current user ID
 
   useEffect(() => {
-    // Fetch all users and chats from Firebase
     const fetchUsersAndChats = async () => {
       try {
         const database = getDatabase();
 
-        // Fetch all users
         const usersSnapshot = await get(ref(database, "users"));
         const users = usersSnapshot.exists() ? usersSnapshot.val() : {};
 
         const filteredUsers = Object.keys(users)
-          .filter((userId) => userId !== currentUserId) // Exclude the current user
+          .filter((userId) => userId !== currentUserId)
           .map((userId) => ({
             id: userId,
             email: users[userId].email,
@@ -43,23 +40,21 @@ const ChatsContent = ({ setSelectedTab, setOther }) => {
             phone: users[userId].phone,
             pseudo: users[userId].pseudo,
           }));
-        // Fetch all existing chats
+
         const chatsSnapshot = await get(ref(database, "chats"));
         const existingChats = chatsSnapshot.exists() ? chatsSnapshot.val() : {};
 
-        // Filter users who have a chat with the current user
         const usersWithChats = filteredUsers.filter((user) => {
-          // Check if the current user and the other user are part of the chat
           const chatKey = [currentUserId, user.id].sort().join("_");
-          return existingChats[chatKey]; // Include users who have a chat with the current user
+          return existingChats[chatKey];
         });
         const usersWithoutChats = filteredUsers.filter((user) => {
-          // Check if the current user and the other user are part of the chat
           const chatKey = [currentUserId, user.id].sort().join("_");
-          return !existingChats[chatKey]; // Include users who have a chat with the current user
+          return !existingChats[chatKey];
         });
+
         setAllUsers(usersWithoutChats);
-        setChats(usersWithChats); // Set the initial chat list
+        setChats(usersWithChats);
       } catch (error) {
         console.error("Error fetching users or chats:", error);
       }
@@ -70,13 +65,12 @@ const ChatsContent = ({ setSelectedTab, setOther }) => {
 
   const handleAddChat = async (userId) => {
     try {
-      const chatKey = [currentUserId, userId].sort().join("_"); // Sort the user IDs to create a consistent key
+      const chatKey = [currentUserId, userId].sort().join("_");
 
       const database = getDatabase();
       const chatRef = ref(database, `chats/${chatKey}`);
       const usersRef = ref(database, `users/${userId}`);
 
-      // Check if the chat already exists
       const chatSnapshot = await get(chatRef);
       if (chatSnapshot.exists()) {
         Alert.alert("Info", "Chat already exists!");
@@ -90,15 +84,15 @@ const ChatsContent = ({ setSelectedTab, setOther }) => {
       }
       const user = userSnapshot.val();
       const userWithId = { ...user, id: userId };
-      // Create a new chat with an empty messages array
+
       await set(chatRef, {
         users: [currentUserId, userId],
-        messages: [], // Initialize with an empty messages array
+        messages: [],
         createdAt: new Date().toISOString(),
       });
 
       setChats((prevChats) => [...prevChats, userWithId]);
-      setAllUsers((prev) => prev.filter((e) => e.id != userId));
+      setAllUsers((prev) => prev.filter((e) => e.id !== userId));
       setModalVisible(false);
       Alert.alert("Success", "Chat added successfully!");
     } catch (error) {
@@ -109,12 +103,11 @@ const ChatsContent = ({ setSelectedTab, setOther }) => {
 
   const handleDeleteChat = async (userId) => {
     try {
-      const chatKey = [currentUserId, userId].sort().join("_"); // Sort the user IDs to create a consistent key
+      const chatKey = [currentUserId, userId].sort().join("_");
       const database = getDatabase();
       const chatRef = ref(database, `chats/${chatKey}`);
       const usersRef = ref(database, `users/${userId}`);
 
-      // Remove the chat from the database
       await remove(chatRef);
       const userSnapshot = await get(usersRef);
       if (!userSnapshot.exists()) {
@@ -124,7 +117,6 @@ const ChatsContent = ({ setSelectedTab, setOther }) => {
       const user = userSnapshot.val();
       const userWithId = { ...user, id: userId };
 
-      // Update the state to remove the deleted chat from the list
       setChats((prevChats) => prevChats.filter((chat) => chat.id !== userId));
       setAllUsers((prev) => [...prev, userWithId]);
       Alert.alert("Success", "Chat deleted successfully!");
@@ -138,10 +130,8 @@ const ChatsContent = ({ setSelectedTab, setOther }) => {
     const chatKey = [currentUserId, userId].sort().join("_");
     setSelectedTab("Talks");
     setOther(userId);
-    // navigation.navigate('ChatScreen', { chatKey });
   };
 
-  // Filter users based on modal search term (search by email, fullname, phone, or pseudo)
   const filteredUsers = allUsers.filter(
     (user) =>
       user.email.toLowerCase().includes(modalSearchTerm.toLowerCase()) ||
@@ -202,26 +192,29 @@ const ChatsContent = ({ setSelectedTab, setOther }) => {
           <View style={styles.modalContent}>
             <Text style={styles.modalHeader}>Add New Chat</Text>
             <TextInput
-              style={styles.searchInput}
+               height="50"
+             // style={styles.searchInput}
               placeholder="Search Users"
               value={modalSearchTerm}
               onChangeText={setModalSearchTerm}
             />
-            <ScrollView>
-              {filteredUsers.map((user) => (
-                <TouchableOpacity
-                  key={user.id}
-                  onPress={() => handleAddChat(user.id)}>
-                  <Text style={styles.userEmail}>
-                    {user.email} - {user.fullname}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+              <ScrollView style={styles.scrollView}>
+            {filteredUsers.map((user) => (
+              <TouchableOpacity
+                key={user.id}
+                onPress={() => handleAddChat(user.id)}
+                style={styles.touchableOpacity}>
+                <Text style={styles.userEmail}>
+                  {user.email} - {user.fullname}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
             <Button
               title="Close"
               onPress={() => setModalVisible(false)}
               color="#e74c3c"
+              marginTop="20px"
             />
           </View>
         </View>
@@ -235,10 +228,13 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     marginTop: 80,
+    backgroundColor: "#f8f1f3",
   },
   header: {
-    fontSize: 20,
+    fontSize: 22,
     marginBottom: 20,
+    color: "#a8325a",
+    fontWeight: "bold",
   },
   searchContainer: {
     flexDirection: "row",
@@ -248,20 +244,22 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     height: 50,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 5,
+    borderColor: "#a8325a",
+    borderWidth: 2,
+    borderRadius: 8,
     paddingHorizontal: 10,
     fontSize: 16,
+    backgroundColor: "#fff",
   },
   addButton: {
     height: 50,
     width: 50,
-    backgroundColor: "#3498db",
+    backgroundColor: "#a8325a",
     borderRadius: 25,
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 10,
+    elevation: 3,  // Adding shadow effect
   },
   addButtonText: {
     color: "#fff",
@@ -274,15 +272,26 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+    borderBottomColor: "#e1e1e1",
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
   },
   chatItem: {
     fontSize: 16,
+    color: "#333",
   },
   deleteButton: {
     backgroundColor: "#e74c3c",
-    padding: 5,
+    padding: 8,
     borderRadius: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
   },
   deleteButtonText: {
     color: "#fff",
@@ -290,33 +299,62 @@ const styles = StyleSheet.create({
   },
   chatButton: {
     backgroundColor: "#3498db",
-    padding: 5,
+    padding: 8,
     borderRadius: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
   },
   chatButtonText: {
     color: "#fff",
+    fontSize: 14,
   },
   modalContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalContent: {
     width: "80%",
     padding: 20,
     backgroundColor: "#fff",
     borderRadius: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
   },
   modalHeader: {
     fontSize: 18,
+    color: "#a8325a",
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: 10,
+  },
+  scrollView: {
+   // flex: 1, // Allow ScrollView to take up full height
+    padding: 10, 
+    backgroundColor: "#f9f9f9", 
+    height:"50%"
+  },
+  touchableOpacity: {
+    paddingVertical: 10, 
+    paddingHorizontal: 15,
+    marginVertical: 5,
+    backgroundColor: "#fff", 
+    borderRadius: 8, 
+    shadowColor: "#000", 
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2, 
   },
   userEmail: {
     fontSize: 16,
-    marginBottom: 10,
-    color: "#3498db",
+    color: "#333",
+    
+    paddingVertical: 5,
   },
 });
 
