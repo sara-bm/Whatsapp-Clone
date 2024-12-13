@@ -10,6 +10,7 @@ import {
   Linking,
   Alert,
   Modal,
+  ImageBackground
 } from "react-native";
 import {
   getDatabase,
@@ -81,6 +82,22 @@ const ChatScreen = ({ other }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const currentUserId = auth.currentUser?.uid;
   const [locationLoading, setLocationLoading] = useState(false); // State for showing location-loading indicator
+  const [backgroundImage, setBackgroundImage] = useState(""); // New state for the background image
+
+  const availableBackgrounds = [
+ "https://images.rawpixel.com/image_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTAzL3JtNjIzLXktYmFja2dyb3VuZC1hZGotMDAyYy5qcGc.jpg",
+ "https://marketplace.canva.com/EAFJd1mhO-c/1/0/225w/canva-colorful-watercolor-painting-phone-wallpaper-3-fC4q0GHXU.jpg",
+ "https://i.pinimg.com/736x/a3/59/52/a359525eeeaa79e4c0bffd137f3c3dab.jpg",
+ "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTS3maWCUo6Ql0M75F7pkbfHamX7VLmrSy23A&s",
+ "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRL62OsgiSSXn85vcGnfuZkWT3kp_Oy8P4RZA&s"
+    // Add more image URLs as needed
+  ];
+
+  const changeBackground = () => {
+    const randomIndex = Math.floor(Math.random() * availableBackgrounds.length);
+    console.log("background change ",backgroundImage)
+    setBackgroundImage(availableBackgrounds[randomIndex]);
+  };
 
   const sendLocation = async () => {
     setLocationLoading(true); // Show loading indicator while fetching location
@@ -120,6 +137,7 @@ const ChatScreen = ({ other }) => {
       setLocationLoading(false); // Hide loading indicator
     }
   };
+
   useEffect(() => {
     const database = getDatabase();
     const chatKey = [currentUserId, other].sort().join("_");
@@ -249,13 +267,15 @@ const ChatScreen = ({ other }) => {
       Alert.alert("Send Error", error.message);
     }
   };
+  useEffect(() => {
+    changeBackground();
+  }, []);
 
   return (
-    <View style={styles.container}>
-      {/* Existing FlatList for messages */}
+    <ImageBackground source={{ uri: backgroundImage }} style={styles.container}>
       <FlatList
         data={messages}
-        keyExtractor={(item, index) => `${item.senderId}_${item.timestamp}`} // Use senderId and timestamp for a unique key
+        keyExtractor={(item, index) => `${item.senderId}_${item.timestamp}`}
         inverted
         renderItem={({ item }) => (
           <View
@@ -300,217 +320,156 @@ const ChatScreen = ({ other }) => {
         />
 
         <TouchableOpacity
-          onPress={() => setModalVisible(true)}
-          style={styles.sendButton}>
-          <Ionicons name="image-outline" size={20} color="#fff" />
+          onPress={pickImageFromGallery}
+          style={styles.iconButton}>
+          <Ionicons name="image" size={24} color="gray" />
         </TouchableOpacity>
 
-        <Modal
-          transparent={true}
-          animationType="slide"
-          visible={modalVisible}
-          onRequestClose={() => setModalVisible(false)}>
-          <View style={styles.modalContainer}>
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={pickImageFromGallery}>
-              <Text style={styles.modalButtonText}>Choose from Gallery</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.modalButton} onPress={takePhoto}>
-              <Text style={styles.modalButtonText}>Take a Photo</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.modalButton, { backgroundColor: "#e74c3c" }]}
-              onPress={() => setModalVisible(false)}>
-              <Text style={styles.modalButtonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </Modal>
-
-        <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
-          <MaterialIcons name="send" size={20} color="#fff" />
+        <TouchableOpacity
+          onPress={takePhoto}
+          style={styles.iconButton}>
+          <Ionicons name="camera" size={24} color="gray" />
         </TouchableOpacity>
+
         <TouchableOpacity
           onPress={sendLocation}
-          style={[styles.sendButton, { backgroundColor: "#2ecc71" }]}
+          style={styles.iconButton}
           disabled={locationLoading}>
-          <Ionicons
-            name="location-outline"
-            size={20}
-            color="#fff"
-            // style={{ marginHorizontal: 5 }}
+          <MaterialIcons
+            name="location-on"
+            size={24}
+            color={locationLoading ? "lightgray" : "gray"}
           />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={changeBackground} style={[styles.button, { backgroundColor: "transparent" }]}>
+  <Image
+    source={{ uri: backgroundImage }}
+    style={styles.circleButtonImage}
+  />
+</TouchableOpacity>
+        <TouchableOpacity
+          onPress={sendMessage}
+          style={styles.sendButton}>
+          <Ionicons name="send" size={24} color="white" />
         </TouchableOpacity>
       </View>
 
-      {/* Existing file preview */}
-      {file && file.type === "image" && (
-        <Image source={{ uri: file.uri }} style={{ width: 100, height: 100 }} />
-      )}
-    </View>
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="fade">
+        <View style={styles.modal}>
+          <TouchableOpacity
+            style={styles.modalButton}
+            onPress={pickImageFromGallery}>
+            <Text style={styles.modalButtonText}>Pick from Gallery</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.modalButton}
+            onPress={takePhoto}>
+            <Text style={styles.modalButtonText}>Take a Photo</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.modalButton}
+            onPress={() => setModalVisible(false)}>
+            <Text style={styles.modalButtonText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+      </ImageBackground>
   );
 };
-
-// const styles = StyleSheet.create({
-//   container: { flex: 1, marginTop: 10 },
-//   inputContainer: { flexDirection: "row" },
-//   input: {
-//     flex: 1,
-//     borderColor: "#ccc",
-//     borderWidth: 1,
-//     borderRadius: 5,
-//     padding: 10,
-//   },
-//   sendButton: {
-//     marginLeft: 5,
-//     backgroundColor: "#3498db",
-//     padding: 5,
-//     paddingTop: 10,
-//     borderRadius: 5,
-//   },
-//   sendButtonText: { color: "#fff" },
-//   myMessage: {
-//     backgroundColor: "#2ecc71",
-//     alignSelf: "flex-end",
-//     padding: 10,
-//     marginBottom: 10,
-//     borderRadius: 5,
-//   },
-//   otherMessage: {
-//     backgroundColor: "#3498db",
-//     alignSelf: "flex-start",
-//     padding: 10,
-//     marginBottom: 10,
-//     borderRadius: 5,
-//   },
-//   messageText: { color: "#fff" },
-//   messageImage: {
-//     width: 200,
-//     height: 200,
-//     marginVertical: 10,
-//     borderRadius: 10,
-//   },
-//   timestamp: { fontSize: 10, color: "#ccc", marginTop: 5 },
-//   modalContainer: {
-//     flex: 1,
-//     justifyContent: "center",
-//     alignItems: "center",
-//     backgroundColor: "rgba(0,0,0,0.5)",
-//   },
-//   modalButton: {
-//     backgroundColor: "#fff",
-//     padding: 15,
-//     borderRadius: 10,
-//     marginVertical: 5,
-//     width: "80%",
-//     alignItems: "center",
-//   },
-//   modalButtonText: { color: "#000", fontSize: 16 },
-// });
-
-
-
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f6fa",
-    padding: 10,
+    paddingTop: 20,
+    paddingHorizontal: 10,
+    justifyContent: "flex-end",
+   // backgroundColor: "#fff",
   },
   myMessage: {
     alignSelf: "flex-end",
-    backgroundColor: "#3498db",
-    borderRadius: 12,
+    backgroundColor: "#d1f3d1",
+    borderRadius: 10,
     padding: 10,
     marginVertical: 5,
-    maxWidth: "80%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
+    maxWidth: "70%",
   },
   otherMessage: {
     alignSelf: "flex-start",
-    backgroundColor: "#ecf0f1",
-    borderRadius: 12,
+    backgroundColor: "#f1f0f0",
+    borderRadius: 10,
     padding: 10,
     marginVertical: 5,
-    maxWidth: "80%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
+    maxWidth: "70%",
   },
   messageText: {
     fontSize: 16,
-    color: "#2c3e50",
+  },
+  messageImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 10,
+    marginTop: 5,
   },
   timestamp: {
     fontSize: 12,
-    color: "#95a5a6",
+    color: "gray",
     marginTop: 5,
-    alignSelf: "flex-end",
-  },
-  messageImage: {
-    width: 150,
-    height: 150,
-    borderRadius: 8,
-    marginTop: 10,
+    textAlign: "right",
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 10,
     padding: 10,
     backgroundColor: "#fff",
-    borderRadius: 25,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
   },
   input: {
     flex: 1,
-    padding: 10,
-    fontSize: 16,
+    borderColor: "gray",
+    borderWidth: 1,
     borderRadius: 20,
-    backgroundColor: "#ecf0f1",
-    marginRight: 10,
+    paddingHorizontal: 10,
+    height: 40,
+  },
+  iconButton: {
+    marginLeft: 10,
   },
   sendButton: {
-    backgroundColor: "#3498db",
-    padding: 10,
+    marginLeft: 10,
+    backgroundColor: "#007bff",
     borderRadius: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    marginHorizontal: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
+    padding: 10,
   },
-  modalContainer: {
+  modal: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   modalButton: {
-    backgroundColor: "#3498db",
+    backgroundColor: "#fff",
     padding: 15,
-    borderRadius: 25,
-    marginVertical: 10,
+    borderRadius: 5,
+    marginBottom: 10,
     width: "80%",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
   },
   modalButtonText: {
     fontSize: 18,
-    color: "#fff",
-    fontWeight: "bold",
+    color: "#007bff",
+    textAlign: "center",
+  },circleButtonImage: {
+    width: 50, // Adjust the size of the circle as needed
+    height: 50,
+    borderRadius: 25, // This creates the circular effect
+    borderWidth: 2, // Optional: adds a border around the circle
+    borderColor: '#fff', // Border color (optional)
+  },
+  button: {
+    padding: 10, // Optional padding to ensure the image fits properly inside the button
+    alignItems: 'center', // Centers the image inside the button
+    justifyContent: 'center',
   },
 });
 
